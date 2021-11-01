@@ -95,6 +95,7 @@ function createVis(data){
     surveyResponses.map(r=>{
         surveyUserQuestions.map(q=>{
             let newValue = q.answerLookup[r[q[qualtricsHeader]]] 
+            
             r[q[qualtricsHeader]] = newValue
         })
     })
@@ -143,7 +144,20 @@ function createVis(data){
     //     return newResponse
     //  });
     //  console.log('fakeData is ', fakeData)
-    surveyResponses.map(d=>d.selected = true)
+    surveyResponses.map(d=>{
+
+        [1,2,3,4,5,6,7].map(q=>{
+            let v = d['Q34_'+q];
+            d['Q34_'+q] = v == 1? v : v -1;
+        })
+
+        // console.log(d[qualtricsHeader])
+        //     if (d[qualtricsHeader].includes('Q34')){
+        //         console.log(d[qualtricsHeader])
+        //     }
+        d.selected = true
+        
+    })
      surveyData = surveyResponses;
 
      dataWedgeObj = new dataWedge('dataWedge',surveyQuestions)
