@@ -25,6 +25,18 @@ class filterPanel {
 
     }
 
+    checkAnswer(question,option,answer){
+        let value; 
+        if (question.string){
+            value =  answer && answer.includes(option)
+        } else{
+            value =  answer == option;
+        }
+
+        // if (option == 'Surgery scheduler' && value){console.log(option,answer,value)}
+
+        return value;
+    }
 
     wrangleData() {
 
@@ -33,8 +45,8 @@ class filterPanel {
         vis.filterQuestions.map(q=>{
             q.Options = q.Options.map(o=>{
                 // surveyData
-                let count = surveyData.filter(d=>d[q[qualtricsHeader]]==o).length;
-                let selected = surveyData.filter(d=>d[q[qualtricsHeader]]==o && d.selected).length;
+                let count = surveyData.filter(d=>vis.checkAnswer(q,o,d[q[qualtricsHeader]])).length;
+                let selected = surveyData.filter(d=>vis.checkAnswer(q,o,d[q[qualtricsHeader]]) && d.selected).length;
                 return {option:o,count, selected, clicked:true}
 
             })
@@ -50,7 +62,7 @@ class filterPanel {
 
     filterData(questionId, option,include){
 
-        // console.log( option, include)
+        console.log( option, include)
         //setting the flag for that option as filtered;
         let vis = this;
         vis.filterQuestions.map(q=>{
@@ -69,16 +81,22 @@ class filterPanel {
             let selected = true;
             vis.filterQuestions.map(q=>{
                 let questionId = q[qualtricsHeader];
-                let answer = d[questionId];
-                let clicked = q.Options.filter(o=>o.option == answer)[0].clicked;
-                if (!clicked){
-                    selected = false;
-                }
+                let answers = d[questionId];
+                    answers.split(',').map(answer=>{
+                        let clicked =  q.Options.filter(o=>vis.checkAnswer(q,o.option,answer))[0].clicked;
+  
+                        if (!clicked){
+                            selected = false;
+                        } 
+
+                    })
+                   
             })
            
                 d.selected = selected;
         
         })
+
 
         vis.updateCounts();
         dataFiltered() //main function to recompute values for wedges
@@ -107,8 +125,8 @@ class filterPanel {
         vis.filterQuestions.map(q=>{
             q.Options.map(o=>{
                 // surveyData
-                o.count = surveyData.filter(d=>d[q[qualtricsHeader]]==o.option).length;
-                o.selected = surveyData.filter(d=>d[q[qualtricsHeader]]==o.option && d.selected).length;
+                o.count = surveyData.filter(d=>vis.checkAnswer(q,o.option,d[q[qualtricsHeader]])).length;
+                o.selected = surveyData.filter(d=>vis.checkAnswer(q,o.option,d[q[qualtricsHeader]]) && d.selected).length;
             })
 
         })
@@ -125,7 +143,7 @@ class filterPanel {
         d3.select('#numParticipants')
         .text('' + vis.selectedRespondents + ' / ' + vis.allRespondents + ' participants')
 
-        // console.log('filter Questions', vis.filterQuestions)
+        // console.log('survived ', surveyData.filter(d=>d.selected).map(d=>d['Q4']))
         // console.log('surveyData',surveyData)
 
     }
@@ -295,7 +313,7 @@ class filterPanel {
                 let toggle = d3.select(this).classed('selectAll');
                 d3.select(this).classed('selectAll',!toggle)
 
-                console.log('setting selectAll to ', !toggle)
+                // console.log('setting selectAll to ', !toggle)
                 f.Options.map(d=>{
                     vis.filterData(f[qualtricsHeader],d.option,!toggle);
                 })
@@ -426,7 +444,7 @@ class filterPanel {
         let numOptions = userData.Options.length;
 
         let checkBoxScale = d3.scaleLinear().range([25,(numOptions+1)*25]).domain([0,numOptions])
-        let barScale = d3.scaleLinear().range([0,xOffset]).domain([0,54])
+        let barScale = d3.scaleLinear().range([0,xOffset]).domain([0,vis.allRespondents])
         
 
         let optionData = userData.Options.map(o=>{

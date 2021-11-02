@@ -96,8 +96,11 @@ class dataWedge {
         let tooltipSVG = this.tooltip.append('div').attr('class', 'histDiv')
             .append('svg').attr('class', 'histogram');
 
-        tooltipSVG.append('g').attr('class', 'x-axis')
+      
         tooltipSVG.append('g').attr('class', 'chart')
+        .attr('transform', 'translate(0,20)')
+        .append('g').attr('class', 'x-axis')
+
 
 
 
@@ -313,9 +316,9 @@ class dataWedge {
     }
 
 
-    createHist(d, svg, width = 200, height = 200) {
+    createHist(d, svg, width, height) {
 
-        svg.attr('width', width + 20).attr('height', height + 50)
+        svg.attr('width', width + 20).attr('height', height + 70)
 
         let padding = width*0.2
 
@@ -323,7 +326,7 @@ class dataWedge {
         let values = surveyData.filter(s => s.selected).map(s => s[d[qualtricsHeader]]).sort()
         let quantile = d3.quantile(values, quantiles[d.Set] / 100)
 
-        console.log( 'quantile',quantile)
+        let meanValue = d3.mean(values);
 
         // X axis: scale and draw:
         // var x = d3.scaleLinear()
@@ -410,6 +413,20 @@ class dataWedge {
                 .text( d=> Math.round(percentileLabel) + '%')
         
                 
+                let meanLabel = svg.selectAll(".mLabel")
+                .data([meanValue])
+        
+                let enter = meanLabel
+                .enter()
+                .append("text")
+                .attr('class', 'mLabel')
+               
+                meanLabel = enter.merge(meanLabel) // get the already existing elements as well
+                .attr("x", 2)
+                .attr('y',12)
+                .html( d=> 'Avg Rating: <tspan class=mLabel_span>' + Math.round(meanValue*100)/100 +' </tspan>')
+
+   
 
         let bars = svg.select(".chart").selectAll(".histBar")
             .data(bins)

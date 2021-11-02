@@ -18,8 +18,9 @@ let promises = [
     // d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3RRGXN2mFoFXIfZY5CsLgtmC8vawChFS7cWJEbIROojynou107krBVv_6CmtRqXaP53qpzLUbczh/pub?gid=0&single=true&output=csv"),
     d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vRT4jqNsORiB22OK08jd-cwxkQ1Nda7E0h-YO1Wprki8fytj0v8lHtAoc6zP4G6xW_VdkXOSRNifE2U/pub?gid=0&single=true&output=csv'),
    //survey responses sheet
-    // d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTP_RG-pJHJWjk3QaT16f4Io7IlHUbsYF3eB5h8NorScEEN5xKF_AWv9RCQfCO_S-NrlRlwf3qe4XJa/pub?gid=1274511277&single=true&output=csv"),
-    d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vTf156ERY9s_Zc-mPw0el_GJg8xxkOauMVhNI2nQZK_atnS7axIFirm0fsOG-3MO0_G386ZnCdXMUxU/pub?gid=1289359036&single=true&output=csv'),
+   d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vSMSVwSZCZidnBzusUgSNzn8Im6OHBsvxYDeFR0p7z7uJvjE3OEnZ692ygy2FJUeTRDnSsN_8uwGMLJ/pub?gid=1439350607&single=true&output=csv'),
+    //black voices d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTP_RG-pJHJWjk3QaT16f4Io7IlHUbsYF3eB5h8NorScEEN5xKF_AWv9RCQfCO_S-NrlRlwf3qe4XJa/pub?gid=1274511277&single=true&output=csv"),
+    // old aspectHealth d3.csv('https://docs.google.com/spreadsheets/d/e/2PACX-1vTf156ERY9s_Zc-mPw0el_GJg8xxkOauMVhNI2nQZK_atnS7axIFirm0fsOG-3MO0_G386ZnCdXMUxU/pub?gid=1289359036&single=true&output=csv'),
     //survey userQuestions sheet
     // d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vSugTmsTRgVq3LDdIv1-suHzbU_0UPk--9c2UPQZoo2TQuXETAjO8C6XGmVesiCYSrC8wBNySXTGWl0/pub?gid=0&single=true&output=csv"),
     d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vT6eL0p9cqUXRtlRoxJB-8bM1ahIOqu_f0_KLtcVDCPgkvrXTT4hairRHJxA-cjxMf38Fnc7jQjfWE4/pub?gid=0&single=true&output=csv")
@@ -36,42 +37,15 @@ function quantileChanged(set,quantile){
 }
 
 function dataFiltered(){
-    console.log('data filtered')
     dataWedgeObj.recomputeQuantiles()
 }
 
 function createVis(data){
 
-   // //questions of interest
-    // let questions = ['Q34_1', 'Q34_2', 'Q34_3', 'Q34_4', 'Q34_5', 'Q34_6', 'Q34_7', 'Q35_1', 'Q35_2', 'Q35_3', 'Q35_4', 'Q35_5', 'Q35_6', 'Q35_7'];
-
-    // let dataDict = {};
-    
-    // questions.map(a=> dataDict[a] = {data:[]});
-
-    // let newData = aspectData.map(dd=>Object.fromEntries(Object.entries(dd).filter(([key]) => questions.includes(key))))
-    // newData.map(d=>{
-    //     Object.keys(d).map(k=>{
-    //         dataDict[k].data.push(+d[k])
-    //     })
-    // })
-
-    // Object.keys(dataDict).map(k=>{
-    //     //sort data
-    //     dataDict[k].data.sort();
-    //     // console.log(k, dataDict[k].data);
-    //     dataDict[k].min = d3.min(dataDict[k].data)
-    //     dataDict[k].max = d3.max(dataDict[k].data)
-    //     dataDict[k].upper = d3.quantile(dataDict[k].data, 0.85); 
-    //     dataDict[k].lower = d3.quantile(dataDict[k].data, 0.15); 
-
-    // })
-    
-    // console.log(data[0])
 
     let qualtricsHeader = 'Qualtrics Question ID'
 
-   
+   console.log('data[1]',data[1])
     let surveyQuestions = data[0];
     let surveyResponses = data[1];
     let surveyUserQuestions = data[2].filter(q=>q.Include == 'TRUE');
@@ -84,19 +58,26 @@ function createVis(data){
             let [value,key] = o.trim().split('_')
             key = key || value; //if there is nothing to split on, key = value 
             q['answerLookup'][key]=value;
+            q.string = key !== undefined;
             return value
         })
     })
     console.log('surveyUserQuestions', surveyUserQuestions)
 
-
-
     //convert numeric responses to strings;
     surveyResponses.map(r=>{
         surveyUserQuestions.map(q=>{
-            let newValue = q.answerLookup[r[q[qualtricsHeader]]] 
-            
-            r[q[qualtricsHeader]] = newValue
+            let response = r[q[qualtricsHeader]].split(',') //check for multiple answers;
+
+            if (response.length>1){
+                // console.log('response', response)
+                r[q[qualtricsHeader]] = response.map(r=>q.answerLookup[r]).filter(d=>d).join(',')
+                // console.log(r[q[qualtricsHeader]] )
+            }else{
+                r[q[qualtricsHeader]]  = q.answerLookup[r[q[qualtricsHeader]]] 
+            }
+            // console.log(r[q[qualtricsHeader]] )
+
         })
     })
 
@@ -158,7 +139,11 @@ function createVis(data){
         d.selected = true
         
     })
-     surveyData = surveyResponses;
+
+
+     surveyData = surveyResponses.filter(r=>r.Finished == '1');
+     
+     surveyData.splice(0,3);
 
      dataWedgeObj = new dataWedge('dataWedge',surveyQuestions)
     filterPanelObj = new filterPanel('filterPanel',surveyUserQuestions)
