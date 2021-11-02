@@ -62,7 +62,6 @@ class filterPanel {
 
     filterData(questionId, option,include){
 
-        console.log( option, include)
         //setting the flag for that option as filtered;
         let vis = this;
         vis.filterQuestions.map(q=>{
